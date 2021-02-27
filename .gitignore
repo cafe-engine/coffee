@@ -1,0 +1,8 @@
+.vscode
+coffee
+src/*.o
+*.a
+*.so
+*.sublime-*
+*.swp
+old/
