@@ -1,6 +1,9 @@
 .vscode
 coffee
 src/*.o
+obj/
+bin/
+lib/
 *.a
 *.so
 *.sublime-*

@@ -1,4 +1,4 @@
-#include "src/coffee.h"
+#include "coffee.h"
 
 // stack and heap share the same area
 
