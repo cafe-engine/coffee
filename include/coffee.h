@@ -42,6 +42,15 @@ typedef char* cf_String;
 typedef char cf_Bool;
 typedef unsigned char cf_Byte;
 
+// co_short_t st;
+// co_byte_t byte;
+// co_string_t str;
+
+typedef unsigned int cf_vptr_t;
+typedef unsigned short cf_uint16;
+typedef unsigned int cf_uint32;
+typedef unsigned char cf_uint8;
+
 typedef enum {
   OP_RET = 0, // ret
   OP_REQ,     // req
@@ -102,6 +111,8 @@ static cf_OpCode opcodes[] = {
 //   // cf_String
 // } cf_Value;
 
+// co_value_t val;
+
 typedef union cf_Value {
   cf_Byte b;
   cf_VPtr vptr;
@@ -137,6 +148,8 @@ struct cf_Bean {
     cf_LInt li;
   };
 };
+
+// co_bean_t bean;
 
 // struct cf_Bean {
 
@@ -278,6 +291,12 @@ extern "C" {
 #define tostring(bean) (bean)->str
 #define tobool(bean) 
 #define tocfunc(vm, b) (cf_cdr(vm, b)->fn);
+
+// Coffee* co_init(void *ptr, int size);
+// int cof_deinit(Coffee *vm);
+// cfe_mark(Coffee *vm, co_bean_t *bean);
+// int co_sweep(Coffee *vm);
+// 
 
 CF_API cf_VM* cf_init(void *ptr, int size);
 CF_API void cf_deinit(cf_VM *vm);
