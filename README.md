@@ -3,7 +3,7 @@
 Coffee is a tiny lisp based language
 
 ```lisp
-(= a (* 10 5))
+(= 'a (* 10 5))
 (print (+ a 10))
 ```
 

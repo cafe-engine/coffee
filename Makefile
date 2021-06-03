@@ -37,5 +37,5 @@ hello: $(SLIBNAME) examples/hello/main.o
 
 clean:
 	rm -f $(OBJ)
-	rm -f $(LIBNAME)
+	rm -f $(SLIBNAME)
 	rm -f hello

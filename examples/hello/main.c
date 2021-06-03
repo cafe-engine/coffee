@@ -28,13 +28,13 @@ void *memory;
 
 #define MAX_COMMAND 1024
 
-static cf_Bean* evallist(cf_VM *vm, cf_Bean *list);
-static cf_Bean* evallist(cf_VM *vm, cf_Bean *list) {
+static cf_bean_t* evallist(Coffee *vm, cf_bean_t *list);
+static cf_bean_t* evallist(Coffee *vm, cf_bean_t *list) {
   if (list == cf_null(vm)) return cf_null(vm);
-  cf_Bean *i = list;
+  cf_bean_t *i = list;
   int args = -1;
   while (i != cf_null(vm)) {
-    cf_Bean *t = cf_car(vm, i);
+    cf_bean_t *t = cf_car(vm, i);
 
     // printf("%p: %d\n", t, t->tag);
     if (t == cf_symbol(vm, "car")) printf("%p\n", t);
@@ -57,12 +57,12 @@ static cf_Bean* evallist(cf_VM *vm, cf_Bean *list) {
   return cf_call(vm, args);
 }
 
-static void printtree(cf_VM *vm, cf_Bean *b);
-static void printtree(cf_VM *vm, cf_Bean *b) {
+static void printtree(Coffee *vm, cf_bean_t *b);
+static void printtree(Coffee *vm, cf_bean_t *b) {
 
-  // cf_Bean *i = b;
+  // cf_bean_t *i = b;
   while (b != cf_null(vm)) {
-    cf_Bean *i = cf_car(vm, b);
+    cf_bean_t *i = cf_car(vm, b);
     switch(i->tag & TYPE_MASK) {
       case CF_TNULL: printf("null"); break;
       case CF_TTRUE: printf("true"); break;
@@ -83,10 +83,10 @@ static void printtree(cf_VM *vm, cf_Bean *b) {
 
 int main(int argc, char ** argv) {
   memory = malloc(MEM_SIZE);
-  cf_VM *vm = cf_init(memory, MEM_SIZE);
+  Coffee *vm = cf_init(memory, MEM_SIZE);
 
-  printf("vm: %ld, bean: %ld\n", sizeof(cf_VM), sizeof(cf_Bean));
-  printf("%ld %ld\n", sizeof(void*), sizeof(cf_Ptr));
+  printf("vm: %ld, bean: %ld\n", sizeof(Coffee), sizeof(cf_bean_t));
+  printf("%ld %ld\n", sizeof(void*), sizeof(cf_ptr_t));
 
   char op;
   float arg0, arg1;
@@ -97,8 +97,8 @@ int main(int argc, char ** argv) {
 
 
 
-  // cf_Bean *s = cf_symbol(vm, "print");
-  // cf_Bean *cd = cf_cdr(vm, s);
+  // cf_bean_t *s = cf_symbol(vm, "print");
+  // cf_bean_t *cd = cf_cdr(vm, s);
   // printf("%p -> %p\n", s, cd);
 
 #if 0
@@ -117,16 +117,16 @@ int main(int argc, char ** argv) {
 
   fclose(fp);
 
-  cf_Bean *b = cf_read(vm, buff);
+  cf_bean_t *b = cf_read(vm, buff);
   // evallist(vm, b);
-  // // printf("%p\n", cf_call(cf_VM *vm, int args));
+  // // printf("%p\n", cf_call(Coffee *vm, int args));
   // cf_pushcfunc(vm, cf_print);
   // cf_push(vm, cf_car(vm, b));
 
   // cf_call(vm, 1);
   while (b != cf_null(vm)) {
-    cf_Bean *i = cf_car(vm, b);
-    cf_Bean *res = evallist(vm, i);
+    cf_bean_t *i = cf_car(vm, b);
+    cf_bean_t *res = evallist(vm, i);
   //   // printf("%p: %d, %g\n", res, res->tag, res->n);
 
     b = cf_cdr(vm, b);
@@ -135,9 +135,9 @@ int main(int argc, char ** argv) {
 
 
   // while (i != cf_null(vm)) {
-  //   cf_Bean *t = cf_car(vm, i);
+  //   cf_bean_t *t = cf_car(vm, i);
   //   printf("%p: %d\n", t, t->tag);
-  //   // cf_Bean *res = evalist(vm, t);
+  //   // cf_bean_t *res = evalist(vm, t);
   //   // printf("%p\n", res);
     
   //   i = cf_cdr(vm, i);
@@ -159,19 +159,19 @@ int main(int argc, char ** argv) {
 
     if (*command == 'e') break;
 
-    cf_Bean *b = cf_read(vm, command);
+    cf_bean_t *b = cf_read(vm, command);
     while (b != cf_null(vm)) {
-      cf_Bean *i = cf_car(vm, b);
-      // cf_Bean *res = evallist(vm, i);
+      cf_bean_t *i = cf_car(vm, b);
+      // cf_bean_t *res = evallist(vm, i);
 
       // printtree(vm, i);
 
       // cf_pushcfunc(vm, cf_print);
       // cf_pushstring(vm, "tree:");
-      // cf_Bean *iter = i;
+      // cf_bean_t *iter = i;
       // int args = 1;
       // while (iter != cf_null(vm)) {
-      //   // cf_Bean *ca = cf_car(vm, iter);
+      //   // cf_bean_t *ca = cf_car(vm, iter);
       //   cf_push(vm, cf_car(vm, iter));
 
       //   // printf("%p: %d\n", ca, ca->tag);
@@ -182,14 +182,14 @@ int main(int argc, char ** argv) {
 
       // cf_call(vm, args);
 
-      cf_Bean *el = NULL;
-      cf_Bean *iter = i;
+      cf_bean_t *el = NULL;
+      cf_bean_t *iter = i;
 
       // cf_foreach(vm, el, iter) {
       //   printf("%p\n", el);
       // }
 
-      cf_Bean *res = evallist(vm, i);
+      cf_bean_t *res = evallist(vm, i);
       // printf("%p\n", b);
       // printf("%p: %d, %g\n", res, res->tag, res->n);
 

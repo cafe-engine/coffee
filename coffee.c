@@ -38,9 +38,9 @@
 
 #define cmalloc(vm) (&(vm)->memory[(vm)->hp--])
 
-#define start_addr sizeof(cf_VM)
+#define start_addr sizeof(Coffee)
 
-// static cf_VM *vm;
+// static Coffee *vm;
 
 const char *typenames[CF_TMAX] = {
   "free", "null", "true",
@@ -52,43 +52,43 @@ const char *typenames[CF_TMAX] = {
   "symbol"
 };
 
-// static void printtype(cf_Bean *bn) {
+// static void printtype(cf_bean_t *bn) {
 //   printf("type: %s\n", typenames[type(bn)]);
 // }
 
 #define aritfn(op) \
-  cf_Bean *a = cf_get(vm, 0); \
-  cf_Bean *b = cf_get(vm, 1); \
-  cf_Bean *n = cf_number(vm, a->n op b->n); \
+  cf_bean_t *a = cf_get(vm, 0); \
+  cf_bean_t *b = cf_get(vm, 1); \
+  cf_bean_t *n = cf_number(vm, a->n op b->n); \
   return n;
 
-cf_Bean *cf_add(cf_VM *vm) { aritfn(+) }
-cf_Bean *cf_sub(cf_VM *vm) { aritfn(-) }
-cf_Bean *cf_mul(cf_VM *vm) { aritfn(*) }
-cf_Bean *cf_div(cf_VM *vm) { aritfn(/) }
+cf_bean_t *cf_add(Coffee *vm) { aritfn(+) }
+cf_bean_t *cf_sub(Coffee *vm) { aritfn(-) }
+cf_bean_t *cf_mul(Coffee *vm) { aritfn(*) }
+cf_bean_t *cf_div(Coffee *vm) { aritfn(/) }
 
-static cf_Bean* fn_car(cf_VM *vm) {
-  cf_Bean *b = cf_get(vm, 0);
+static cf_bean_t* fn_car(Coffee *vm) {
+  cf_bean_t *b = cf_get(vm, 0);
   if (cf_top(vm) > 1) cf_error(vm, "'car' expects 1 argument\n");
 
   return cf_car(vm, b);
 }
 
-static cf_Bean* fn_cdr(cf_VM *vm) {
-  cf_Bean *b = cf_get(vm, 0);
+static cf_bean_t* fn_cdr(Coffee *vm) {
+  cf_bean_t *b = cf_get(vm, 0);
 
   return cf_cdr(vm, b);
 }
 
-static cf_Bean* fn_pair(cf_VM *vm) {
-  cf_Bean *a = cf_get(vm, 0);
-  cf_Bean *b = cf_get(vm, 1);
+static cf_bean_t* fn_pair(Coffee *vm) {
+  cf_bean_t *a = cf_get(vm, 0);
+  cf_bean_t *b = cf_get(vm, 1);
 
   return cf_pair(vm, a, b);
 }
 
-static void* toptr(cf_VM *vm, cf_Bean *b);
-static void* toptr(cf_VM *vm, cf_Bean *b) {
+static void* toptr(Coffee *vm, cf_bean_t *b);
+static void* toptr(Coffee *vm, cf_bean_t *b) {
   if (isnull(b)) return 0;
   int type = type(b);
 
@@ -109,19 +109,19 @@ static void* toptr(cf_VM *vm, cf_Bean *b) {
   return (void*)pptr;
 }
 
-static cf_Bean *fn_list(cf_VM *vm) {
+static cf_bean_t *fn_list(Coffee *vm) {
   return cf_list(vm, cf_top(vm));
 }
 
-static cf_Bean *fn_table(cf_VM *vm) {
+static cf_bean_t *fn_table(Coffee *vm) {
   return cf_table(vm, cf_top(vm));
 }
 
-cf_VM *cf_init(void *ptr, int size) {
+Coffee *cf_init(void *ptr, int size) {
   CF_ASSERT(size > 0, "count must be greater than 0");
   memset(ptr, 0, size);
-  cf_VM *vm;
-  vm = (cf_VM*)ptr;
+  Coffee *vm;
+  vm = (Coffee*)ptr;
   // memset(vm, 0, sizeof(*vm));
   ptr = (char*)ptr + sizeof(*vm);
   size -= sizeof(*vm);
@@ -133,8 +133,8 @@ cf_VM *cf_init(void *ptr, int size) {
   // vm->first = &vm->sNull;
   // vm->gc = &vm->sNull;
 
-  vm->mem_size = size / sizeof(cf_Bean);
-  vm->memory = (cf_Bean*)ptr;
+  vm->mem_size = size / sizeof(cf_bean_t);
+  vm->memory = (cf_bean_t*)ptr;
 
 
   // memset(vm->memory, 0, vm->mem_size);
@@ -202,12 +202,12 @@ cf_VM *cf_init(void *ptr, int size) {
   return vm;
 }
 
-void cf_deinit(cf_VM *vm) {
+void cf_deinit(Coffee *vm) {
   // free(vm->memory);
 }
 
-static void printstring(cf_VM *vm, cf_Bean *b);
-static void printstring(cf_VM *vm, cf_Bean *b) {
+static void printstring(Coffee *vm, cf_bean_t *b);
+static void printstring(Coffee *vm, cf_bean_t *b) {
   if (b == cf_null(vm)) return;
 
 
@@ -219,7 +219,7 @@ static void printstring(cf_VM *vm, cf_Bean *b) {
   // printf("%.*s", 3, b->car.str);
   // printf("%p %.4s\n", b, b->str);
   printf("%.*s", len, b->str);
-  cf_Bean *n = next(b);
+  cf_bean_t *n = next(b);
   // printf("next: %p\n", n);
   printstring(vm, n);
     // printf("1: %p\n", b);
@@ -230,8 +230,8 @@ static void printstring(cf_VM *vm, cf_Bean *b) {
 }
 
 // static int tabs = 0;
-// static void print_bean(cf_VM *vm, cf_Bean *bean);
-// static void print_bean(cf_VM *vm, cf_Bean *bean) {
+// static void print_bean(Coffee *vm, cf_bean_t *bean);
+// static void print_bean(Coffee *vm, cf_bean_t *bean) {
 //   printf("bean: 0x%.4x <%s>", addr(vm, bean), typenames[type(bean)]);
 //   char tc[tabs+1];
 //   tc[tabs] = '\0';
@@ -260,12 +260,12 @@ static void printstring(cf_VM *vm, cf_Bean *b) {
 
 // }
 
-static void print_addr(cf_VM *vm, const char *type, cf_Bean *b) {
+static void print_addr(Coffee *vm, const char *type, cf_bean_t *b) {
   printf("%s: 0x%.4x", type, addr(vm, b));
 }
 
-static void print_val(cf_VM *vm, cf_Bean *b);
-static void print_val(cf_VM *vm, cf_Bean *b) {
+static void print_val(Coffee *vm, cf_bean_t *b);
+static void print_val(Coffee *vm, cf_bean_t *b) {
   // printf("tá indo memo?\n");
   switch(type(b)) {
     case CF_TNULL: printf("null"); break;
@@ -280,14 +280,14 @@ static void print_val(cf_VM *vm, cf_Bean *b) {
 }
 
 
-cf_Bean* cf_print(cf_VM *vm) {
+cf_bean_t* cf_print(Coffee *vm) {
   int top = top(vm);
   // printf("testandow %d\n", top);
 
   int i = 0;
   while (i < top) {
     // print_bean(vm, cf_get(vm, i++));
-    cf_Bean *b = cf_get(vm, i++);
+    cf_bean_t *b = cf_get(vm, i++);
     print_val(vm, b);
     printf(" ");
     // printf("0x%.4lx\n", addr(vm, b));
@@ -309,7 +309,7 @@ cf_Bean* cf_print(cf_VM *vm) {
   return cf_null(vm);
 }
 
-void cf_mark(cf_VM *vm, cf_Bean *bean) {
+void cf_mark(Coffee *vm, cf_bean_t *bean) {
   if (marked(bean)) return;
   mark(bean);
 
@@ -328,11 +328,11 @@ void cf_mark(cf_VM *vm, cf_Bean *bean) {
   }
 }
 
-void cf_sweep(cf_VM *vm) {
+void cf_sweep(Coffee *vm) {
   int hp = vm->hp;
 
   while (hp < vm->mem_size) {
-    cf_Bean *b = peek(vm, hp);
+    cf_bean_t *b = peek(vm, hp);
     // printf("sweep: %p %d\n", b, marked(b));
     if (!marked(b)) b->li = 0;
     else unmark(b);
@@ -341,55 +341,55 @@ void cf_sweep(cf_VM *vm) {
   }
 }
 
-void cf_gc(cf_VM *vm) {
+void cf_gc(Coffee *vm) {
   // for (int i = 0; i < STACK_MAX; i++) cf_mark(vm, )
   mark(vm->sTrue);
   mark(vm->sNull);
   cf_mark(vm, vm->symbol_list);
   for (int i = 0; i < vm->sp; i++) {
-    cf_Bean *b = peek(vm, vm->stack[i]);
+    cf_bean_t *b = peek(vm, vm->stack[i]);
     printf("mark: %p\n", b);
     cf_mark(vm, b);
   }
   cf_sweep(vm);
 }
 
-void cf_error(cf_VM *vm, const cf_String str) {
+void cf_error(Coffee *vm, const cf_string_t str) {
   fprintf(stderr, "[coffee] error: %s", str);
   exit(1);
 }
 
-cf_Bean* cf_status(cf_VM *vm) {
-  float mem_size = (vm->mem_size*sizeof(cf_Bean))/1000.f;
-  float usage = (vm->mem_size - vm->hp - 1) * sizeof(cf_Bean);
-  float stack = (vm->sp) * sizeof(cf_VPtr);
+cf_bean_t* cf_status(Coffee *vm) {
+  float mem_size = (vm->mem_size*sizeof(cf_bean_t))/1000.f;
+  float usage = (vm->mem_size - vm->hp - 1) * sizeof(cf_bean_t);
+  float stack = (vm->sp) * sizeof(cf_vptr_t);
   // usage += (vm->sp * sizeof(cf_Short));
   printf("[coffee] mem usage: %gkb / %gkb [ stack: %gkb heap: %gkb ]\n", (stack+usage)/1000.f, mem_size, stack/1000.f, usage/1000.f);
   return cf_null(vm);
 }
 
-int cf_top(cf_VM *vm) {
+int cf_top(Coffee *vm) {
   return vm->sp - vm->fp;
 }
 
-void cf_settop(cf_VM *vm, int index) {
+void cf_settop(Coffee *vm, int index) {
   vm->sp = vm->fp + index;
 }
 
-cf_Bean* cf_call(cf_VM *vm, int args) {
+cf_bean_t* cf_call(Coffee *vm, int args) {
   int fp = vm->fp;
   // int top = vm->sp;
   vm->fp = (vm->sp-1) - args;
   if (vm->fp < 0) cf_error(vm, "wrong args number\n");
 
-  cf_Bean *b = cf_get(vm, 0);
+  cf_bean_t *b = cf_get(vm, 0);
   // printf("%p (%s): %x %x\n", b, typenames[type(b)], b->i, b->next);
   vm->fp++;
-  cf_CFunc fn = (cf_CFunc) toptr(vm, b);
+  cf_cfunc_t fn = (cf_cfunc_t) toptr(vm, b);
   if (isnull(b)) cf_error(vm, "function cannot be null\n");
   // printf("qqqqqqqq %p\n", ptr);
   // printf("cfunc: %p call: %p %p\n", b, cf_print, fn);
-  cf_Bean *res = fn(vm);
+  cf_bean_t *res = fn(vm);
   // printf("qqq\n");
 
   vm->sp = vm->fp - 1;
@@ -397,15 +397,15 @@ cf_Bean* cf_call(cf_VM *vm, int args) {
   return res;
 }
 
-cf_Bean *cf_quote(cf_VM *vm) {
-  cf_Bean *b = cf_get(vm, 0);
+cf_bean_t *cf_quote(Coffee *vm) {
+  cf_bean_t *b = cf_get(vm, 0);
   printf("%p: %d\n", b, type(b));
   return b;
 }
 
-cf_Bean* cf_set(cf_VM *vm) {
-  cf_Bean *s = cf_get(vm, 0);
-  cf_Bean *v = cf_get(vm, 1);
+cf_bean_t* cf_set(Coffee *vm) {
+  cf_bean_t *s = cf_get(vm, 0);
+  cf_bean_t *v = cf_get(vm, 1);
 
   // printf("%p: %d, %p: %d\n", s, type(s), v, type(v));
 
@@ -414,45 +414,45 @@ cf_Bean* cf_set(cf_VM *vm) {
   return s;
 }
 
-cf_Bean *cf_get(cf_VM *vm, int index) {
+cf_bean_t *cf_get(Coffee *vm, int index) {
   if (index < 0) index = (vm->sp - vm->fp) + index;
 
   // printf("%d\n", vm->fp + index);
   return peek(vm, vm->stack[vm->fp + index]);
 }
 
-void cf_push(cf_VM *vm, cf_Bean *bn) {
-  // int sp = (vm->sp+1) / (sizeof(cf_Bean) / 2);
-  int hp = vm->hp * sizeof(cf_Bean);
-  int sp = vm->sp * sizeof(cf_VPtr);
+void cf_push(Coffee *vm, cf_bean_t *bn) {
+  // int sp = (vm->sp+1) / (sizeof(cf_bean_t) / 2);
+  int hp = vm->hp * sizeof(cf_bean_t);
+  int sp = vm->sp * sizeof(cf_vptr_t);
   if (sp > hp)  cf_error(vm, "stack overflow\n");
   // printf("push: %p (%s)\n", bn, typenames[type(bn)]);
   push(vm, bn);
 }
 
-cf_Bean *cf_pop(cf_VM *vm) {
+cf_bean_t *cf_pop(Coffee *vm) {
   if (vm->sp <= 0) cf_error(vm, "stack underflow\n");
   return pop(vm);
 }
 
-cf_Bean* cf_setglobal(cf_VM *vm, const cf_String name) {
-  cf_Bean *v = cf_pop(vm);
+cf_bean_t* cf_setglobal(Coffee *vm, const cf_string_t name) {
+  cf_bean_t *v = cf_pop(vm);
 
-  cf_Bean *s = cf_symbol(vm, name);
+  cf_bean_t *s = cf_symbol(vm, name);
   setcdr(s, v);
 
   return s;
 }
 
-cf_Bean* cf_malloc(cf_VM *vm) {
-  int hp = vm->hp * sizeof(cf_Bean);
-  int sp = vm->sp * sizeof(cf_VPtr);
+cf_bean_t* cf_malloc(Coffee *vm) {
+  int hp = vm->hp * sizeof(cf_bean_t);
+  int sp = vm->sp * sizeof(cf_vptr_t);
   if (sp > hp) cf_error(vm, "out of memory\n");
 
   return cmalloc(vm);
 }
 
-cf_Bean* cf_create(cf_VM *vm) {
+cf_bean_t* cf_create(Coffee *vm) {
   int i = vm->hp + 1;
   // printf("---\n");
   // printf("qqq\n");
@@ -463,13 +463,13 @@ cf_Bean* cf_create(cf_VM *vm) {
     //   // printf("gc: %p\n", b);
     //   break;
     // }
-    cf_Bean *b = peek(vm, i);
+    cf_bean_t *b = peek(vm, i);
     // printf("create: %p: %d\n", b, type(b));
     if (type(b) == CF_TFREE) return b;
     i++;
   }
 
-  cf_Bean *n = cf_malloc(vm);
+  cf_bean_t *n = cf_malloc(vm);
   settype(n, CF_TNULL);
   // b->ln = 1;
   // printf("%p vaddr: 0x%.4lx\n", b, addr(vm, b));
@@ -487,35 +487,35 @@ cf_Bean* cf_create(cf_VM *vm) {
   // return cmalloc(vm);
 }
 
-cf_Bean *cf_null(cf_VM *vm) {
+cf_bean_t *cf_null(Coffee *vm) {
   return vm->sNull;
 }
 
-int cf_isnull(cf_VM *vm, cf_Bean *b) {
+int cf_isnull(Coffee *vm, cf_bean_t *b) {
   return isnull(b);
 }
 
-cf_Bean *cf_true(cf_VM *vm) {
+cf_bean_t *cf_true(Coffee *vm) {
   return vm->sTrue;
 }
 
-cf_Bean *cf_number(cf_VM *vm, cf_Number n) {
-  cf_Bean *bn = cf_create(vm);
+cf_bean_t *cf_number(Coffee *vm, cf_number_t n) {
+  cf_bean_t *bn = cf_create(vm);
   // printf("%p %g %d\n",bn, bn->ln, bn->ln == 0);
   settype(bn, CF_TNUMBER);
   number(bn) = n;
   return bn;
 }
 
-static cf_Bean* buildstring(cf_VM *vm, const cf_String str);
-static cf_Bean* buildstring(cf_VM *vm, const cf_String str) {
+static cf_bean_t* buildstring(Coffee *vm, const cf_string_t str);
+static cf_bean_t* buildstring(Coffee *vm, const cf_string_t str) {
   if (!str) return cf_null(vm);
   if (*str == '\0') return cf_null(vm);
   // printf("%s\n", str);
-  cf_String p = str;
+  cf_string_t p = str;
   int len = strlen(str);
 
-  cf_Bean *s = cf_create(vm);
+  cf_bean_t *s = cf_create(vm);
   s->li = 0;
   // printf("ptr: %p\n", s);
   settype(s, CF_TSTRING);
@@ -538,7 +538,7 @@ static cf_Bean* buildstring(cf_VM *vm, const cf_String str) {
   // while (i < 4) s->car.str[i++] = *(p++);
 
   // setcdr(s, buildstring(vm, p));
-  cf_Bean *n = buildstring(vm, p);
+  cf_bean_t *n = buildstring(vm, p);
   // printf("next: %p\n", n);
   setnext(s, n);
   // printf("%.4s, %p %p %p\n", s->car.str, s, cdr(s), cf_null(vm));
@@ -546,20 +546,20 @@ static cf_Bean* buildstring(cf_VM *vm, const cf_String str) {
   // setcdr(s, cf_null(vm));
   // printf("len: %d\n", len);
   // if (len <= 4) return s;
-  // cf_Bean *ex = buildstring(vm, p);
+  // cf_bean_t *ex = buildstring(vm, p);
 
   // setcdr(s, ex);
   return s; 
 }
 
-cf_Bean *cf_string(cf_VM *vm, const cf_String str) {
-  // cf_Bean *bn = cf_create(vm);
+cf_bean_t *cf_string(Coffee *vm, const cf_string_t str) {
+  // cf_bean_t *bn = cf_create(vm);
   // settype(bn, CF_TSTRING);
   // int len = strlen(str);
   // string(bn) = malloc(len + 1);
   // strcpy(string(bn), str);
   // string(bn)[len] = '\0';
-  // cf_Bean *bn = cf_create(vm);
+  // cf_bean_t *bn = cf_create(vm);
   // setcdr(bn, b)
   // settype(bn, CF_TSTRING);
   // setnext(bn, buildstring(vm, str));
@@ -569,12 +569,12 @@ cf_Bean *cf_string(cf_VM *vm, const cf_String str) {
   return buildstring(vm, str);
 }
 
-cf_Bean *cf_bool(cf_VM *vm, cf_Bool b) {
+cf_bean_t *cf_bool(Coffee *vm, cf_bool_t b) {
   return b ? vm->sTrue : vm->sNull;
 }
 
-// cf_Bean* cf_cons(cf_VM *vm, cf_Bean *a, cf_Bean *b) {
-//   cf_Bean *bn = cf_create(vm);
+// cf_bean_t* cf_cons(Coffee *vm, cf_bean_t *a, cf_bean_t *b) {
+//   cf_bean_t *bn = cf_create(vm);
 //   // settype()
 //   bn->car.vptr = addr(vm, a);
 //   bn->cdr.vptr = addr(vm, b);
@@ -584,11 +584,11 @@ cf_Bean *cf_bool(cf_VM *vm, cf_Bool b) {
 
 // #defin cf_cons()
 
-cf_Bean *cf_pair(cf_VM *vm, cf_Bean *a, cf_Bean *b) {
-  cf_Bean *bn = cf_create(vm);
+cf_bean_t *cf_pair(Coffee *vm, cf_bean_t *a, cf_bean_t *b) {
+  cf_bean_t *bn = cf_create(vm);
 
   settype(bn, CF_TPAIR);
-  // cf_Bean *vptr = cf_create(vm);
+  // cf_bean_t *vptr = cf_create(vm);
   setcar(bn, a);
   setcdr(bn, b);
 
@@ -601,22 +601,22 @@ cf_Bean *cf_pair(cf_VM *vm, cf_Bean *a, cf_Bean *b) {
   return bn;
 }
 
-cf_Bean* cf_table(cf_VM *vm, int sz) {
-  cf_Bean *b = cf_create(vm);
+cf_bean_t* cf_table(Coffee *vm, int sz) {
+  cf_bean_t *b = cf_create(vm);
   settype(b, CF_TTABLE);
   setcar(b, cf_null(vm));
 
-  cf_Bean *bn = cf_list(vm, sz);
+  cf_bean_t *bn = cf_list(vm, sz);
   setcdr(b, bn);
 
   return b;
 }
 
-cf_Bean *cf_list(cf_VM *vm, int sz) {
-  cf_Bean *bn = vm->sNull;
+cf_bean_t *cf_list(Coffee *vm, int sz) {
+  cf_bean_t *bn = vm->sNull;
 
   while (sz > 0) {
-    cf_Bean *p = cf_pop(vm);
+    cf_bean_t *p = cf_pop(vm);
     // printf("%p: %s\n", p, typenames[type(p)]);
     // print_addr(vm, typenames[type(p)], p);
     // printf("\n");
@@ -631,24 +631,24 @@ cf_Bean *cf_list(cf_VM *vm, int sz) {
   return bn;
 }
 
-cf_Bean *cf_car(cf_VM *vm, cf_Bean *bn) {
+cf_bean_t *cf_car(Coffee *vm, cf_bean_t *bn) {
   if (isnull(bn)) return bn;
   return car(bn);
 }
 
-cf_Bean *cf_cdr(cf_VM *vm, cf_Bean *bn) {
+cf_bean_t *cf_cdr(Coffee *vm, cf_bean_t *bn) {
   if (isnull(bn)) return bn;
   // printf("%p -> %p\n", bn, car(bn));
   return cdr(bn);
 }
 
-cf_Bean *cf_cfunc(cf_VM *vm, cf_CFunc fn) {
+cf_bean_t *cf_cfunc(Coffee *vm, cf_cfunc_t fn) {
   if (!fn) return cf_null(vm);
-  cf_Bean *bn = cf_create(vm);
+  cf_bean_t *bn = cf_create(vm);
   settype(bn, CF_TCFUNC);
 
   long int iptr = (long int)fn;
-  // cf_VPtr l = iptr & 0xffff;
+  // cf_vptr_t l = iptr & 0xffff;
   // int h = iptr >> 16;
   bn->next = iptr & 0xffff;
   bn->i = iptr >> 0x10;
@@ -658,12 +658,12 @@ cf_Bean *cf_cfunc(cf_VM *vm, cf_CFunc fn) {
   // printf("%p %lx\n", fn, iptr);
   // printf("%x %x\n", bn->next, bn->i);
   // printf("%p tp: %x\n", bn, bn->i);
-  // cf_Bean *ex = cf_cfunc(vm, (cf_CFunc)(iptr >> 0x20));
+  // cf_bean_t *ex = cf_cfunc(vm, (cf_cfunc_t)(iptr >> 0x20));
   // bn->next = addr(vm, ex);
   // setnext(bn, ex);
 
   // setcdr(bn, cf_create(vm));
-  // cf_Bean *c = cdr(bn);
+  // cf_bean_t *c = cdr(bn);
   // c->fn = fn;
 
   // printf("fn: %p %p\n", c->fn, fn);
@@ -673,9 +673,9 @@ cf_Bean *cf_cfunc(cf_VM *vm, cf_CFunc fn) {
   return bn;
 }
 
-cf_Bean *cf_ptr(cf_VM *vm, cf_Ptr pptr) {
+cf_bean_t *cf_ptr(Coffee *vm, cf_ptr_t pptr) {
   if (!pptr) return cf_null(vm);
-  cf_Bean *bn = cf_create(vm);
+  cf_bean_t *bn = cf_create(vm);
 
   // int iptr = (int)pptr;
   // cf_Short ptr1 = (iptr & 0xffff0000) >> 0x10;
@@ -689,10 +689,10 @@ cf_Bean *cf_ptr(cf_VM *vm, cf_Ptr pptr) {
   bn->i = iptr >> 0x10;
   // bn->i = iptr & 0xffffffff;
 
-  // cf_Bean *ex = cf_ptr(vm, (cf_Ptr)(iptr >> 0x20));
+  // cf_bean_t *ex = cf_ptr(vm, (cf_ptr_t)(iptr >> 0x20));
   // setnext(bn, ex);
   
-  // cf_Bean *p = cf_create(vm);
+  // cf_bean_t *p = cf_create(vm);
   // // p->car.n = ptr1;
   // // p->cdr.n = ptr0;
   // // p->ptr = pptr;
@@ -703,8 +703,8 @@ cf_Bean *cf_ptr(cf_VM *vm, cf_Ptr pptr) {
   return bn;
 }
 
-static int streq(cf_VM *vm, cf_Bean *bstr, const cf_String str) {
-  // cf_VM *vm = &vm;
+static int streq(Coffee *vm, cf_bean_t *bstr, const cf_string_t str) {
+  // Coffee *vm = &vm;
   int i = 0;
   // printf("len %d\n", 1);
   int len = strlen(str);
@@ -727,13 +727,13 @@ static int streq(cf_VM *vm, cf_Bean *bstr, const cf_String str) {
   // return !strcmp(bstr->str, str);
 }
 
-cf_Bean* cf_symbol(cf_VM *vm, const cf_String str) {
+cf_bean_t* cf_symbol(Coffee *vm, const cf_string_t str) {
   CF_ASSERT(str != NULL, "symbol name cannot be null");
 
-	cf_Bean *symbol = vm->symbol_list;
+	cf_bean_t *symbol = vm->symbol_list;
   // printf("symbol list: %p\n", symbol);
 	while (symbol != cf_null(vm)) {
-    cf_Bean *s = car(symbol);
+    cf_bean_t *s = car(symbol);
     // printstring(vm, car(s));
     // printf("\n");
 		if (streq(vm, car(s), str)) return s;
@@ -742,12 +742,12 @@ cf_Bean* cf_symbol(cf_VM *vm, const cf_String str) {
 
 	symbol = vm->symbol_list;
 
-	cf_Bean *bean = cf_create(vm);
+	cf_bean_t *bean = cf_create(vm);
   settype(bean, CF_TSYMBOL);
 	// // int len = strlen(name);
-	cf_Bean *nm = cf_string(vm, (cf_String)str);
+	cf_bean_t *nm = cf_string(vm, (cf_string_t)str);
 	// setcar(bean, nm);
-	// cf_Bean *p = cf_cons(vm, nm, cf_null(vm));
+	// cf_bean_t *p = cf_cons(vm, nm, cf_null(vm));
 
   setcar(bean, nm);
   setcdr(bean, vm->sNull);
@@ -760,45 +760,45 @@ cf_Bean* cf_symbol(cf_VM *vm, const cf_String str) {
 	return bean;
 }
 
-cf_Bean * cf_optbean(cf_VM *vm, int index, cf_Bean *opt) {
-  cf_Bean *b = cf_get(vm, index);
+cf_bean_t * cf_optbean(Coffee *vm, int index, cf_bean_t *opt) {
+  cf_bean_t *b = cf_get(vm, index);
   return b;
 }
 
-cf_Number cf_optnumber(cf_VM *vm, int index, cf_Number opt) {
-  cf_Bean *b = cf_get(vm, index);
+cf_number_t cf_optnumber(Coffee *vm, int index, cf_number_t opt) {
+  cf_bean_t *b = cf_get(vm, index);
   if (type(b) != CF_TNUMBER) return opt;
   return b->n;
 }
 
-const cf_String cf_optstring(cf_VM *vm, int index, cf_String opt) {
-  cf_Bean *b = cf_get(vm, index);
+const cf_string_t cf_optstring(Coffee *vm, int index, cf_string_t opt) {
+  cf_bean_t *b = cf_get(vm, index);
   if (type(b) != CF_TSTRING) return opt;
   // return 
   return NULL;
 }
 
-cf_Bean* cf_optsymbol(cf_VM *vm, int index, cf_Bean *bn) {
+cf_bean_t* cf_optsymbol(Coffee *vm, int index, cf_bean_t *bn) {
   return bn;
 }
 
-cf_Bool cf_optbool(cf_VM *vm, int index, cf_Bool opt) {
-  cf_Bean *b = cf_get(vm, index);
+cf_bool_t cf_optbool(Coffee *vm, int index, cf_bool_t opt) {
+  cf_bean_t *b = cf_get(vm, index);
   return isnull(b) ? 0 : 1;
 }
 
-cf_CFunc cf_optcfunc(cf_VM *vm, int index, cf_CFunc opt) {
-  cf_Bean *b = cf_get(vm, index);
+cf_cfunc_t cf_optcfunc(Coffee *vm, int index, cf_cfunc_t opt) {
+  cf_bean_t *b = cf_get(vm, index);
   if (type(b) != CF_TCFUNC) return opt;
-  cf_CFunc f = (cf_CFunc)toptr(vm, b);
+  cf_cfunc_t f = (cf_cfunc_t)toptr(vm, b);
 
   return f;
 }
 
-cf_Ptr cf_optptr(cf_VM *vm, int index, cf_Ptr opt) {
-  cf_Bean *b = cf_get(vm, index);
+cf_ptr_t cf_optptr(Coffee *vm, int index, cf_ptr_t opt) {
+  cf_bean_t *b = cf_get(vm, index);
   if (type(b) != CF_TPTR) return opt;
-  cf_Ptr ptr = (cf_Ptr)toptr(vm, b);
+  cf_ptr_t ptr = (cf_ptr_t)toptr(vm, b);
 
   return ptr;
 }
@@ -826,7 +826,7 @@ static int isalpha(char p) {
   return (p >= 'a' && p <= 'z') || (p >= 'A' && p <= 'Z');
 }
 
-static cf_Bean *read_number(cf_VM *vm, const char **str) {
+static cf_bean_t *read_number(Coffee *vm, const char **str) {
   char *p = (char*)*str;
   int mul = 1;
 
@@ -843,7 +843,7 @@ static cf_Bean *read_number(cf_VM *vm, const char **str) {
   return cf_number(vm, n);
 }
 
-static cf_Bean *read_string(cf_VM *vm, const char **str) {
+static cf_bean_t *read_string(Coffee *vm, const char **str) {
   char *p = (char*)*str;
 
   int len = 0;
@@ -860,7 +860,7 @@ static cf_Bean *read_string(cf_VM *vm, const char **str) {
   return cf_string(vm, buf);
 }
 
-static cf_Bean *read_symbol(cf_VM *vm, const char **str) {
+static cf_bean_t *read_symbol(Coffee *vm, const char **str) {
   char *p = (char*)*str;
 
   int len = 0;
@@ -883,8 +883,8 @@ static cf_Bean *read_symbol(cf_VM *vm, const char **str) {
   return cf_symbol(vm, buf);
 }
 
-static cf_Bean *read(cf_VM *vm, const char **str);
-static cf_Bean *read(cf_VM *vm, const char **str) {
+static cf_bean_t *read(Coffee *vm, const char **str);
+static cf_bean_t *read(Coffee *vm, const char **str) {
   char *p = (char*)*str;
   // p++;
   while(is_whitespace(*p)) p++;
@@ -908,7 +908,7 @@ static cf_Bean *read(cf_VM *vm, const char **str) {
       // printf("%d %d\n", top, cf_top(vm));
       if (top != cf_top(vm)) args++;
       if (*p == '\0') cf_error(vm, "missing ')'\n");
-      cf_Bean *b = read(vm, str);
+      cf_bean_t *b = read(vm, str);
       // printf("%c ", *p);
       p = (char*)*str;
       // printf("%p\n", b);
@@ -935,9 +935,9 @@ static cf_Bean *read(cf_VM *vm, const char **str) {
   return cf_null(vm);
 }
 
-cf_Bean* cf_read(cf_VM *vm, const char *str) {
+cf_bean_t* cf_read(Coffee *vm, const char *str) {
   // cf_error(vm, "string cannot be null\n");
-  cf_Bean *b = cf_null(vm);
+  cf_bean_t *b = cf_null(vm);
 
   int len = 0;
   while (*str != '\0') {
@@ -946,7 +946,7 @@ cf_Bean* cf_read(cf_VM *vm, const char *str) {
     //   char *n = p;
     //   while (isnum(*p)) p++;
     // }
-    cf_Bean *bn = read(vm, &str);
+    cf_bean_t *bn = read(vm, &str);
     cf_push(vm, bn);
     len++;
     // cf_status(vm);
