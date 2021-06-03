@@ -2,6 +2,11 @@
 
 Coffee is a tiny lisp based language
 
+```lisp
+(= a (* 10 5))
+(print (+ a 10))
+```
+
 ### References and Inspirations
 
 - [fe](https://github.com/rxi/fe/) *by* [@rxi](https://github.com/rxi/)
